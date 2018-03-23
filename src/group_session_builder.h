@@ -61,6 +61,10 @@ int group_session_builder_create_session(group_session_builder *builder,
         sender_key_distribution_message **distribution_message,
         const signal_protocol_sender_key_name *sender_key_name);
 
+int get_sender_key_distribution_message(group_session_builder *builder,
+        sender_key_distribution_message **distribution_message,
+        const signal_protocol_sender_key_name *sender_key_name);
+
 void group_session_builder_free(group_session_builder *builder);
 
 #ifdef __cplusplus

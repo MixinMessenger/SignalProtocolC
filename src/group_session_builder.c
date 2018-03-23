@@ -141,6 +141,46 @@ complete:
     return result;
 }
 
+int get_sender_key_distribution_message(group_session_builder *builder,
+                                        sender_key_distribution_message **distribution_message,
+                                        const signal_protocol_sender_key_name *sender_key_name)
+{
+    int result = 0;
+    sender_key_record *record = 0;
+    sender_key_state *state = 0;
+    sender_chain_key *chain_key = 0;
+    signal_buffer *seed = 0;
+
+    assert(builder);
+    assert(builder->store);
+    signal_lock(builder->global_context);
+
+    result = signal_protocol_sender_key_load_key(builder->store, &record, sender_key_name);
+    if(result < 0) {
+        goto complete;
+    }
+
+    result = sender_key_record_get_sender_key_state(record, &state);
+    if(result < 0) {
+        goto complete;
+    }
+
+    chain_key = sender_key_state_get_chain_key(state);
+    seed = sender_chain_key_get_seed(chain_key);
+
+    result = sender_key_distribution_message_create(distribution_message,
+                                                    sender_key_state_get_key_id(state),
+                                                    sender_chain_key_get_iteration(chain_key),
+                                                    signal_buffer_data(seed), signal_buffer_len(seed),
+                                                    sender_key_state_get_signing_key_public(state),
+                                                    builder->global_context);
+
+complete:
+    SIGNAL_UNREF(record);
+    signal_unlock(builder->global_context);
+    return result;
+}
+
 void group_session_builder_free(group_session_builder *builder)
 {
     if(builder) {
